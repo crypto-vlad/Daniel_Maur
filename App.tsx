@@ -1,23 +1,33 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {ApolloProvider} from '@apollo/react-hooks';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator} from 'react-native';
+import offixClient from './src/graphql/offix';
+import {InitialScreen} from './src/screens/InitialScreen';
 
-import useCachedResources from './hooks/useCachedResources';
-import useColorScheme from './hooks/useColorScheme';
-import Navigation from './navigation';
+const App = () => {
+  const [initialized, setInitialized] = useState(false);
 
-export default function App() {
-  const isLoadingComplete = useCachedResources();
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    offixClient
+      .init()
+      .then(() => setInitialized(true))
+      .catch(error => console.log(error));
+  }, []);
 
-  if (!isLoadingComplete) {
-    return null;
-  } else {
+  if (initialized) {
     return (
-      <SafeAreaProvider>
-        <Navigation colorScheme={colorScheme} />
-        <StatusBar />
-      </SafeAreaProvider>
+      <ApolloProvider client={offixClient}>
+        <InitialScreen />
+      </ApolloProvider>
     );
   }
-}
+
+  return (
+    <ActivityIndicator
+      size="small"
+      style={{flex: 1, justifyContent: 'center'}}
+    />
+  );
+};
+
+export default App;
